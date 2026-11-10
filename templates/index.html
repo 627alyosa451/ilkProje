@@ -1,1 +1,39 @@
-<h1>Merhaba Flask!</h1>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kütüphane Veritabanı</title>
+    <!-- Tasarım dosyası public/ klasöründen çağrılır[cite: 4, 11] -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>📚 Kütüphane Kitap ve Eser Listesi</h1>
+
+    {% if kitaplar %}
+    <table>
+        <thead>
+            <tr>
+                <th>Kitap Adı</th>
+                <th>Yazar</th>
+                <th>Yayınevi</th>
+                <th>Konu</th>
+                <th>Sayfa Sayısı</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k in kitaplar %}
+            <tr>
+                <td>{{ k['KitapAdi'] }}</td>
+                <td>{{ k['YazarTamAdi'] }}</td>
+                <td>{{ k['YayinEviAdi'] }}</td>
+                <td>{{ k['KonuAdi'] }}</td>
+                <td>{{ k['SayfaSayisi'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Veritabanında henüz kayıt bulunmuyor.</p>
+    {% endif %}
+</body>
+</html>

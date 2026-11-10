@@ -2,89 +2,94 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Kütüphane Veritabanı</title>
-    <!-- CSS dosyanız -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kütüphane Yönetim Sistemi</title>
+    <!-- Tasarım dosyası Vercel standartlarına uygun olarak çağrılıyor -->
     <link rel="stylesheet" href="/style.css">
-    
-    <!-- Arama kutusu için ufak bir tasarım -->
-    <style>
-        .arama-kutusu {
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .arama-kutusu input {
-            padding: 10px;
-            width: 300px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .arama-kutusu button {
-            padding: 10px 20px;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .arama-kutusu button:hover {
-            background-color: #1a252f;
-        }
-        .temizle-link {
-            color: #e74c3c;
-            text-decoration: none;
-            font-size: 14px;
-        }
-    </style>
 </head>
 <body>
-    <h1>📚 Kütüphane Kitap ve Eser Listesi</h1>
+    <div class="kapsayici">
+        <header>
+            <h1>📚 Kütüphane Kitap ve Eser Listesi</h1>
+        </header>
 
-    <!-- Dinamik Filtreleme Formu -->
-    <div class="arama-kutusu">
-        <form action="/" method="GET" style="margin: 0;">
-            <input type="text" name="arama" value="{{ arama_kelimesi }}" placeholder="Kitap, Yazar, Yayınevi veya Konu ara...">
-            <button type="submit">Ara</button>
-            
-            <!-- Eğer bir arama yapıldıysa "Filtreyi Temizle" butonu çıksın -->
-            {% if arama_kelimesi %}
-            <a href="/" class="temizle-link">✖ Filtreyi Temizle</a>
+        <!-- Arama ve Sıralama Paneli -->
+        <div class="kontrol-paneli">
+            <form action="/" method="GET" class="filtre-formu">
+                <input type="text" name="arama" value="{{ arama_kelimesi }}" placeholder="Kitap, Yazar, Yayınevi veya Konu ara...">
+                
+                <select name="sirala">
+                    <option value="kitap_asc" {% if secili_sirala == 'kitap_asc' %}selected{% endif %}>A-Z (Kitap Adı)</option>
+                    <option value="kitap_desc" {% if secili_sirala == 'kitap_desc' %}selected{% endif %}>Z-A (Kitap Adı)</option>
+                    <option value="yazar_asc" {% if secili_sirala == 'yazar_asc' %}selected{% endif %}>A-Z (Yazar)</option>
+                    <option value="sayfa_asc" {% if secili_sirala == 'sayfa_asc' %}selected{% endif %}>Sayfa Sayısı (Artan)</option>
+                    <option value="sayfa_desc" {% if secili_sirala == 'sayfa_desc' %}selected{% endif %}>Sayfa Sayısı (Azalan)</option>
+                </select>
+
+                <button type="submit" class="btn-uygula">Uygula</button>
+                
+                {% if arama_kelimesi or secili_sirala != 'kitap_asc' %}
+                <a href="/" class="btn-temizle">✖ Temizle</a>
+                {% endif %}
+            </form>
+        </div>
+        <!-- İstatistik Paneli -->
+        <section class="istatistik-paneli">
+            <h3>📊 Veritabanı Özeti</h3>
+            <div class="istatistik-kartlari">
+                <div class="kart">
+                    <h4>Kayıtlı Eser</h4>
+                    <p>{{ istatistik.toplam_kitap }}</p>
+                </div>
+                <div class="kart">
+                    <h4>Kayıtlı Yazar</h4>
+                    <p>{{ istatistik.toplam_yazar }}</p>
+                </div>
+                <div class="kart">
+                    <h4>Toplam Sayfa Hacmi</h4>
+                    <p>{{ istatistik.toplam_sayfa }}</p>
+                </div>
+            </div>
+        </section>
+        <!-- Veri Tablosu -->
+        <main>
+            {% if kitaplar %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kitap Adı</th>
+                        <th>Yazar</th>
+                        <th>Yayınevi</th>
+                        <th>Konu</th>
+                        <th class="sag-hizala">Sayfa Sayısı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kitaplar %}
+                    <tr>
+                        <td><strong>{{ k['KitapAdi'] }}</strong></td>
+                        <td>{{ k['YazarTamAdi'] }}</td>
+                        <td>{{ k['YayinEviAdi'] }}</td>
+                        <td><span class="etiket">{{ k['KonuAdi'] }}</span></td>
+                        <td class="sag-hizala">{{ k['SayfaSayisi'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="bos-durum">
+                <p>Aradığınız kriterlere uygun kayıt bulunamadı.</p>
+            </div>
             {% endif %}
-        </form>
-    </div>
+        </main>
 
-    {% if kitaplar %}
-    <table>
-        <thead>
-            <tr>
-                <th>Kitap Adı</th>
-                <th>Yazar</th>
-                <th>Yayınevi</th>
-                <th>Konu</th>
-                <th>Sayfa Sayısı</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for k in kitaplar %}
-            <tr>
-                <td>{{ k['KitapAdi'] }}</td>
-                <td>{{ k['YazarTamAdi'] }}</td>
-                <td>{{ k['YayinEviAdi'] }}</td>
-                <td>{{ k['KonuAdi'] }}</td>
-                <td>{{ k['SayfaSayisi'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p><strong>"{{ arama_kelimesi }}"</strong> ile eşleşen bir kayıt bulunamadı.</p>
-    {% endif %}
+        
+
+        <!-- Alt Bilgi -->
+        <footer>
+            <p>BBY361 Veri Tabanı Yönetim Sistemleri Projesi</p>
+            <p>Hacettepe Üniversitesi | Bilgi ve Belge Yönetimi</p>
+        </footer>
+    </div>
 </body>
 </html>

@@ -23,8 +23,9 @@ def baglanti_ac():
 
 @app.route("/")
 def anasayfa():
-    # Arama çubuğundan gelen veriyi al
+    # URL'den arama ve sıralama verilerini al
     arama_kelimesi = request.args.get("arama", "").strip()
+    siralama = request.args.get("sirala", "kitap_asc")
     
     with baglanti_ac() as db:
         sorgu = """
@@ -43,7 +44,7 @@ def anasayfa():
         """
         parametreler = []
 
-        # Eğer kullanıcı bir kelime girdiyse SQL sorgusuna filtre ekle
+        # 1. BÖLÜM: ARAMA FİLTRESİ (Senin çalışan eski yapın)
         if arama_kelimesi:
             sorgu += """ AND (
                 K.KitapAdi LIKE ? OR 
@@ -52,14 +53,29 @@ def anasayfa():
                 KonuAdi LIKE ?
             )"""
             aranacak_deger = f"%{arama_kelimesi}%"
-            # 4 adet soru işareti (?) için parametreleri çoğalt
             parametreler.extend([aranacak_deger, aranacak_deger, aranacak_deger, aranacak_deger])
             
-        sorgu += " ORDER BY K.KitapAdi ASC"
-        
+        # 2. BÖLÜM: SIRALAMA EKLENTİSİ
+        if siralama == "kitap_desc":
+            sorgu += " ORDER BY K.KitapAdi DESC"
+        elif siralama == "yazar_asc":
+            sorgu += " ORDER BY YazarTamAdi ASC"
+        elif siralama == "sayfa_asc":
+            sorgu += " ORDER BY K.SayfaSayisi ASC"
+        elif siralama == "sayfa_desc":
+            sorgu += " ORDER BY K.SayfaSayisi DESC"
+        else:
+            sorgu += " ORDER BY K.KitapAdi ASC"
+            
         veriler = db.execute(sorgu, parametreler).fetchall()
         
-    return render_template("index.html", kitaplar=veriler, arama_kelimesi=arama_kelimesi)
+        # 3. BÖLÜM: İSTATİSTİK VERİLERİ (Alt bilgi kartları için)
+        istatistikler = {}
+        istatistikler['toplam_kitap'] = db.execute("SELECT COUNT(*) FROM Kutuphane").fetchone()[0]
+        istatistikler['toplam_yazar'] = db.execute("SELECT COUNT(*) FROM Yazar").fetchone()[0]
+        istatistikler['toplam_sayfa'] = db.execute("SELECT SUM(SayfaSayisi) FROM Kutuphane").fetchone()[0]
+        
+    return render_template("index.html", kitaplar=veriler, arama_kelimesi=arama_kelimesi, secili_sirala=siralama, istatistik=istatistikler)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -3,7 +3,7 @@ import shutil
 import sqlite3
 from flask import Flask, render_template, request
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="public", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "yerel-gelistirme-anahtari")
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
